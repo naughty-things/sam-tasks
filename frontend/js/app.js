@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   try {
     // Check auth
-    const client = getClient();
+    const client = await getClient();
     const { data: { user } } = await client.auth.getUser();
     
     if (!user) {

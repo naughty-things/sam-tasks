@@ -2,13 +2,13 @@
 // Authentication Functions
 // ============================================
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   // Check if already logged in
-  checkAuth();
+  await checkAuth();
 });
 
 async function checkAuth() {
-  const client = getClient();
+  const client = await getClient();
   const { data: { session } } = await client.auth.getSession();
   
   if (session) {
@@ -36,7 +36,7 @@ if (loginForm) {
     const errorMsg = document.getElementById('error-msg');
     
     try {
-      const client = getClient();
+      const client = await getClient();
       const { data, error } = await client.auth.signInWithPassword({ email, password });
       
       if (error) throw error;
@@ -67,7 +67,7 @@ if (registerForm) {
     }
     
     try {
-      const client = getClient();
+      const client = await getClient();
       const { data, error } = await client.auth.signUp({
         email,
         password,
@@ -89,14 +89,14 @@ if (registerForm) {
 
 // Logout
 async function logout() {
-  const client = getClient();
+  const client = await getClient();
   await client.auth.signOut();
   window.location.href = 'login.html';
 }
 
 // Get current user
 async function getCurrentUser() {
-  const client = getClient();
+  const client = await getClient();
   const { data: { user } } = await client.auth.getUser();
   return user;
 }

@@ -8,15 +8,22 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 let supabase = null;
 
 function initSupabase() {
-  if (typeof window.supabase !== 'undefined') {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  }
-  return supabase;
+  return new Promise((resolve, reject) => {
+    function tryInit() {
+      if (typeof window.supabase !== 'undefined') {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        resolve(supabase);
+      } else {
+        setTimeout(tryInit, 50);
+      }
+    }
+    tryInit();
+  });
 }
 
-function getClient() {
+async function getClient() {
   if (!supabase) {
-    initSupabase();
+    await initSupabase();
   }
   return supabase;
 }

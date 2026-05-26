@@ -6,7 +6,7 @@ const TASKS_PER_PAGE = 50;
 
 // Get all tasks for current user
 async function getTasks(filters = {}) {
-  const client = getClient();
+  const client = await getClient();
   const { data: { user } } = await client.auth.getUser();
   
   let query = client.from('tasks').select('*').eq('user_id', user.id);
@@ -33,7 +33,7 @@ async function getTasks(filters = {}) {
 
 // Create task
 async function createTask(taskData) {
-  const client = getClient();
+  const client = await getClient();
   const { data: { user } } = await client.auth.getUser();
   
   const { data, error } = await client.from('tasks').insert({
@@ -47,7 +47,7 @@ async function createTask(taskData) {
 
 // Update task
 async function updateTask(taskId, taskData) {
-  const client = getClient();
+  const client = await getClient();
   
   const { data, error } = await client
     .from('tasks')
@@ -61,7 +61,7 @@ async function updateTask(taskId, taskData) {
 
 // Delete task
 async function deleteTask(taskId) {
-  const client = getClient();
+  const client = await getClient();
   
   const { error } = await client.from('tasks').delete().eq('id', taskId);
   
@@ -70,7 +70,7 @@ async function deleteTask(taskId) {
 
 // Get task by ID
 async function getTask(taskId) {
-  const client = getClient();
+  const client = await getClient();
   
   const { data, error } = await client.from('tasks').select('*').eq('id', taskId).single();
   
@@ -84,7 +84,7 @@ async function getTask(taskId) {
 
 // Get all projects
 async function getProjects() {
-  const client = getClient();
+  const client = await getClient();
   const { data: { user } } = await client.auth.getUser();
   
   const { data, error } = await client
@@ -99,7 +99,7 @@ async function getProjects() {
 
 // Create project
 async function createProject(projectData) {
-  const client = getClient();
+  const client = await getClient();
   const { data: { user } } = await client.auth.getUser();
   
   const { data, error } = await client.from('projects').insert({
@@ -113,7 +113,7 @@ async function createProject(projectData) {
 
 // Delete project
 async function deleteProject(projectId) {
-  const client = getClient();
+  const client = await getClient();
   
   const { error } = await client.from('projects').delete().eq('id', projectId);
   
