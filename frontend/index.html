@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sam Tasks - Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-brand">Sam Tasks</div>
+    <div class="nav-user">
+      <span id="user-email"></span>
+      <button id="logout-btn" class="btn btn-small">Logout</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="header">
+      <h1>My Tasks</h1>
+      <button id="add-task-btn" class="btn btn-primary">+ Add Task</button>
+    </div>
+
+    <div class="filters">
+      <div class="filter-group">
+        <label>Project:</label>
+        <select id="filter-project">
+          <option value="">All Projects</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Status:</label>
+        <select id="filter-status">
+          <option value="">All Statuses</option>
+          <option value="not_started">Not Started</option>
+          <option value="in_progress">In Progress</option>
+          <option value="waiting">Waiting</option>
+          <option value="done">Done</option>
+          <option value="custom">Custom</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Priority:</label>
+        <select id="filter-priority">
+          <option value="">All Priorities</option>
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="task-list" class="task-list"></div>
+    <div id="empty-state" class="empty-state hidden">
+      <p>No tasks found. Click "Add Task" to create one!</p>
+    </div>
+  </div>
+
+  <!-- Add/Edit Task Modal -->
+  <div id="task-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-title">Add Task</h2>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      
+      <form id="task-form">
+        <input type="hidden" id="task-id">
+        
+        <div class="form-group">
+          <label for="task-title">Title *</label>
+          <input type="text" id="task-title" required placeholder="What needs to be done?">
+        </div>
+        
+        <div class="form-group">
+          <label for="task-description">Description</label>
+          <textarea id="task-description" rows="3" placeholder="Additional details..."></textarea>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="task-project">Project</label>
+            <select id="task-project">
+              <option value="">No Project</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="task-due-date">Due Date</label>
+            <input type="date" id="task-due-date">
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="task-priority">Priority</label>
+            <select id="task-priority">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="task-status">Status</label>
+            <select id="task-status">
+              <option value="not_started">Not Started</option>
+              <option value="in_progress">In Progress</option>
+              <option value="waiting">Waiting</option>
+              <option value="done">Done</option>
+              <option value="custom">Custom...</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-group hidden" id="custom-status-group">
+          <label for="task-custom-status">Custom Status</label>
+          <input type="text" id="task-custom-status" placeholder="e.g., Waiting for client, On hold...">
+        </div>
+        
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Task</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Project Modal -->
+  <div id="project-modal" class="modal hidden">
+    <div class="modal-content modal-small">
+      <div class="modal-header">
+        <h2>Add Project</h2>
+        <button class="modal-close" onclick="closeProjectModal()">&times;</button>
+      </div>
+      
+      <form id="project-form">
+        <div class="form-group">
+          <label for="project-name">Project Name *</label>
+          <input type="text" id="project-name" required placeholder="e.g., Toshiba Campaign">
+        </div>
+        
+        <div class="form-group">
+          <label for="project-color">Color</label>
+          <input type="color" id="project-color" value="#6366f1">
+        </div>
+        
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeProjectModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add Project</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/supabase.js"></script>
+  <script src="js/tasks.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
