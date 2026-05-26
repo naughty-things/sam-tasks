@@ -60,6 +60,10 @@ CREATE TABLE IF NOT EXISTS public.tasks (
   status TEXT DEFAULT 'not_started',
   custom_status TEXT,
   
+  -- Repeat fields
+  repeat_type TEXT DEFAULT 'none' CHECK (repeat_type IN ('none', 'daily', 'weekdays', 'weekly', 'monthly')),
+  repeat_days INTEGER[], -- for weekly: 0-6 (Sun-Sat), for monthly: 1-31
+  
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );

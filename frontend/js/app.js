@@ -76,6 +76,10 @@ async function loadTasks() {
       btn.addEventListener('click', () => deleteTaskConfirm(btn.dataset.id));
     });
     
+    document.querySelectorAll('.task-complete-btn').forEach(btn => {
+      btn.addEventListener('click', () => completeTask(btn.dataset.id));
+    });
+    
   } catch (error) {
     console.error('Load tasks error:', error);
   }
@@ -85,6 +89,7 @@ async function loadTasks() {
 function renderTaskCard(task) {
   const project = projects.find(p => p.id === task.project_id);
   const dueDateClass = isOverdue(task.due_date) ? 'overdue' : (isToday(task.due_date) ? 'today' : '');
+  const repeatBadge = getRepeatBadge(task);
   
   return `
     <div class="task-card priority-${task.priority}">
@@ -96,14 +101,39 @@ function renderTaskCard(task) {
           ${task.due_date ? `<span class="task-due ${dueDateClass}">📅 ${formatDate(task.due_date)}</span>` : ''}
           <span class="badge badge-priority-${task.priority}">${task.priority}</span>
           <span class="badge badge-status">${escapeHtml(getStatusDisplay(task))}</span>
+          ${repeatBadge}
         </div>
       </div>
       <div class="task-actions">
+        ${task.status !== 'done' ? `<button class="task-complete-btn" data-id="${task.id}" title="Complete">✓</button>` : ''}
         <button class="task-edit-btn" data-id="${task.id}" title="Edit">✏️</button>
         <button class="task-delete-btn" data-id="${task.id}" title="Delete">🗑️</button>
       </div>
     </div>
   `;
+}
+
+// Get repeat badge HTML
+function getRepeatBadge(task) {
+  if (!task.repeat_type || task.repeat_type === 'none') return '';
+  
+  const repeatLabels = {
+    'daily': '🔁 Daily',
+    'weekdays': '🔁 Weekdays',
+    'weekly': '🔁 Weekly',
+    'monthly': '🔁 Monthly'
+  };
+  
+  let extra = '';
+  if (task.repeat_type === 'weekly' && task.repeat_days) {
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const days = task.repeat_days.map(d => dayNames[d]).join(', ');
+    extra = ` (${days})`;
+  } else if (task.repeat_type === 'monthly' && task.repeat_days && task.repeat_days.length > 0) {
+    extra = ` (${task.repeat_days[0]}th)`;
+  }
+  
+  return `<span class="badge" style="background:rgba(99,102,241,0.2);color:#a0a0c0;">${repeatLabels[task.repeat_type]}${extra}</span>`;
 }
 
 // Escape HTML to prevent XSS
@@ -153,6 +183,28 @@ function setupTaskModal() {
     }
   });
   
+  // Repeat type change handler
+  document.getElementById('task-repeat').addEventListener('change', (e) => {
+    const repeatDaysGroup = document.getElementById('repeat-days-group');
+    const repeatDaysCheckboxes = document.getElementById('repeat-days-checkboxes');
+    const repeatDayOfMonth = document.getElementById('repeat-day-of-month');
+    const repeatDaysLabel = document.getElementById('repeat-days-label');
+    
+    if (e.target.value === 'weekly') {
+      repeatDaysGroup.classList.remove('hidden');
+      repeatDaysCheckboxes.style.display = 'flex';
+      repeatDayOfMonth.style.display = 'none';
+      repeatDaysLabel.textContent = 'Repeat on:';
+    } else if (e.target.value === 'monthly') {
+      repeatDaysGroup.classList.remove('hidden');
+      repeatDaysCheckboxes.style.display = 'none';
+      repeatDayOfMonth.style.display = 'block';
+      repeatDaysLabel.textContent = 'Day of month:';
+    } else {
+      repeatDaysGroup.classList.add('hidden');
+    }
+  });
+  
   // Form submit
   document.getElementById('task-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -168,6 +220,8 @@ function openTaskModal(taskId = null) {
   form.reset();
   document.getElementById('task-id').value = '';
   document.getElementById('custom-status-group').classList.add('hidden');
+  document.getElementById('repeat-days-group').classList.add('hidden');
+  document.getElementById('task-repeat').value = 'none';
   
   populateProjectDropdowns();
   
@@ -201,6 +255,25 @@ async function loadTaskForEdit(taskId) {
       document.getElementById('custom-status-group').classList.remove('hidden');
       document.getElementById('task-custom-status').value = task.custom_status || '';
     }
+    
+    // Load repeat fields
+    const repeatType = task.repeat_type || 'none';
+    document.getElementById('task-repeat').value = repeatType;
+    
+    if (repeatType === 'weekly' && task.repeat_days) {
+      document.getElementById('repeat-days-group').classList.remove('hidden');
+      document.getElementById('repeat-days-checkboxes').style.display = 'flex';
+      document.getElementById('repeat-day-of-month').style.display = 'none';
+      task.repeat_days.forEach(day => {
+        const checkbox = document.querySelector(`.repeat-day[value="${day}"]`);
+        if (checkbox) checkbox.checked = true;
+      });
+    } else if (repeatType === 'monthly' && task.repeat_days && task.repeat_days.length > 0) {
+      document.getElementById('repeat-days-group').classList.remove('hidden');
+      document.getElementById('repeat-days-checkboxes').style.display = 'none';
+      document.getElementById('repeat-day-of-month').style.display = 'block';
+      document.getElementById('repeat-day-of-month').value = task.repeat_days[0];
+    }
   } catch (error) {
     console.error('Load task error:', error);
     alert('Error loading task');
@@ -214,6 +287,15 @@ async function editTask(taskId) {
 async function saveTask() {
   const taskId = document.getElementById('task-id').value;
   const status = document.getElementById('task-status').value;
+  const repeatType = document.getElementById('task-repeat').value;
+  
+  let repeatDays = null;
+  if (repeatType === 'weekly') {
+    repeatDays = Array.from(document.querySelectorAll('.repeat-day:checked')).map(cb => parseInt(cb.value));
+  } else if (repeatType === 'monthly') {
+    const dayOfMonth = parseInt(document.getElementById('repeat-day-of-month').value);
+    if (dayOfMonth) repeatDays = [dayOfMonth];
+  }
   
   const taskData = {
     title: document.getElementById('task-title').value,
@@ -222,7 +304,9 @@ async function saveTask() {
     due_date: document.getElementById('task-due-date').value || null,
     priority: document.getElementById('task-priority').value,
     status: status,
-    custom_status: status === 'custom' ? document.getElementById('task-custom-status').value : null
+    custom_status: status === 'custom' ? document.getElementById('task-custom-status').value : null,
+    repeat_type: repeatType,
+    repeat_days: repeatDays
   };
   
   try {
@@ -238,6 +322,87 @@ async function saveTask() {
     console.error('Save task error:', error);
     alert('Error saving task');
   }
+}
+
+// Complete task and create next repeat if needed
+async function completeTask(taskId) {
+  try {
+    const task = await getTask(taskId);
+    
+    if (task.repeat_type && task.repeat_type !== 'none') {
+      // Create next repeat task
+      const nextDueDate = calculateNextDueDate(task.due_date, task.repeat_type, task.repeat_days);
+      
+      await updateTask(taskId, {
+        status: 'done',
+        due_date: task.due_date // Keep original due date
+      });
+      
+      // Create new task with next due date
+      await createTask({
+        title: task.title,
+        description: task.description,
+        project_id: task.project_id,
+        due_date: nextDueDate,
+        priority: task.priority,
+        status: 'not_started',
+        repeat_type: task.repeat_type,
+        repeat_days: task.repeat_days
+      });
+    } else {
+      // Simple completion
+      await updateTask(taskId, { status: 'done' });
+    }
+    
+    await loadTasks();
+  } catch (error) {
+    console.error('Complete task error:', error);
+    alert('Error completing task');
+  }
+}
+
+// Calculate next due date based on repeat type
+function calculateNextDueDate(currentDueDate, repeatType, repeatDays) {
+  const date = currentDueDate ? new Date(currentDueDate) : new Date();
+  date.setHours(0, 0, 0, 0);
+  
+  switch (repeatType) {
+    case 'daily':
+      date.setDate(date.getDate() + 1);
+      break;
+    case 'weekdays':
+      do {
+        date.setDate(date.getDate() + 1);
+      } while (date.getDay() === 0 || date.getDay() === 6); // Skip weekends
+      break;
+    case 'weekly':
+      if (repeatDays && repeatDays.length > 0) {
+        // Find next day in the week that matches
+        const currentDay = date.getDay();
+        const sortedDays = [...repeatDays].sort((a, b) => a - b);
+        let nextDay = sortedDays.find(d => d > currentDay);
+        if (nextDay === undefined) {
+          nextDay = sortedDays[0] + 7;
+        }
+        date.setDate(date.getDate() + (nextDay - currentDay));
+      } else {
+        date.setDate(date.getDate() + 7);
+      }
+      break;
+    case 'monthly':
+      if (repeatDays && repeatDays.length > 0) {
+        const targetDay = repeatDays[0];
+        date.setMonth(date.getMonth() + 1);
+        // Handle months with fewer days
+        const lastDayOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+        date.setDate(Math.min(targetDay, lastDayOfMonth));
+      } else {
+        date.setMonth(date.getMonth() + 1);
+      }
+      break;
+  }
+  
+  return date.toISOString().split('T')[0];
 }
 
 async function deleteTaskConfirm(taskId) {
