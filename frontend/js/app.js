@@ -136,7 +136,7 @@ function renderTaskCard(task) {
         ${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ''}
         <div class="task-meta">
           <span class="badge badge-status task-status-badge" data-id="${task.id}" title="Click to edit status">${task.status ? escapeHtml(task.status) : '+ status'}</span>
-          ${project ? `<span class="badge badge-project">${projectLogo}${escapeHtml(project.name)}</span>` : ''}
+          ${project ? `<span class="badge badge-project">${escapeHtml(project.name)}</span>` : ''}
           ${task.due_date ? `<span class="task-due ${dueDateClass}">${formatDate(task.due_date)}</span>` : ''}
           <span class="badge badge-priority-${task.priority}">${task.priority}</span>
           ${repeatBadge}
@@ -147,6 +147,7 @@ function renderTaskCard(task) {
         <button class="task-edit-btn" data-id="${task.id}" title="Edit">✏️</button>
         <button class="task-delete-btn" data-id="${task.id}" title="Delete">🗑️</button>
       </div>
+      ${projectLogo ? `<div class="task-card-logo"><img src="${escapeHtml(project.image_url)}" alt="${escapeHtml(project.name)}"></div>` : ''}
     </div>
   `;
 }

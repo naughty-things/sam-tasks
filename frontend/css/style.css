@@ -875,14 +875,21 @@ h3 { font-size: 1.1rem; }
   text-decoration: underline;
 }
 
-/* Project logo in task card badge */
-.task-project-logo {
-  width: 16px;
-  height: 16px;
-  border-radius: 3px;
+/* Project logo in task card — bottom right, large */
+.task-card-logo {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
   object-fit: contain;
-  vertical-align: middle;
-  margin-right: 4px;
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.task-card {
+  position: relative;
 }
 
 /* Project logo in project list */
