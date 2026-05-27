@@ -124,7 +124,8 @@ function renderTaskCard(task) {
   const isDone = task.status === 'done';
   
   return `
-    <div class="task-card priority-${task.priority}${isDone ? ' done' : ''}">
+    <div class="task-row">
+      <div class="task-card priority-${task.priority}${isDone ? ' done' : ''}">
       <div class="task-tick-wrap">
         <input type="checkbox" class="task-tick" id="tick-${task.id}" data-id="${task.id}" ${isDone ? 'checked' : ''}>
       </div>
@@ -139,12 +140,13 @@ function renderTaskCard(task) {
         </div>
         ${renderTaskLinks(task.links) ? `<div class="task-links-row">${renderTaskLinks(task.links)}</div>` : ''}
       </div>
-      ${project && project.image_url ? `<img src="${escapeHtml(project.image_url)}" class="task-project-logo" alt="${escapeHtml(project.name)}" title="${escapeHtml(project.name)}">` : ''}
       <div class="task-actions">
         <button class="task-edit-btn" data-id="${task.id}" title="Edit">✏️</button>
         <button class="task-delete-btn" data-id="${task.id}" title="Delete">🗑️</button>
       </div>
     </div>
+    ${project && project.image_url ? `<img src="${escapeHtml(project.image_url)}" class="task-project-logo" alt="${escapeHtml(project.name)}" title="${escapeHtml(project.name)}">` : ''}
+  </div>
   `;
 }
 

@@ -431,15 +431,22 @@ h3 { font-size: 1.1rem; }
     border-color 0.25s,
     transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   animation: fadeUp 0.4s ease-out both;
-  position: relative;
+  flex: 1;
+  min-width: 0;
 }
 
-.task-card:nth-child(1) { animation-delay: 0ms; }
-.task-card:nth-child(2) { animation-delay: 60ms; }
-.task-card:nth-child(3) { animation-delay: 120ms; }
-.task-card:nth-child(4) { animation-delay: 180ms; }
-.task-card:nth-child(5) { animation-delay: 240ms; }
-.task-card:nth-child(n+6) { animation-delay: 300ms; }
+.task-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.75rem;
+}
+
+.task-row:nth-child(1) { animation-delay: 0ms; }
+.task-row:nth-child(2) { animation-delay: 60ms; }
+.task-row:nth-child(3) { animation-delay: 120ms; }
+.task-row:nth-child(4) { animation-delay: 180ms; }
+.task-row:nth-child(5) { animation-delay: 240ms; }
+.task-row:nth-child(n+6) { animation-delay: 300ms; }
 
 .task-card:hover {
   box-shadow: var(--shadow-hover);
@@ -925,12 +932,10 @@ h3 { font-size: 1.1rem; }
 
 /* Project logo — shown in meta row as small icon */
 .task-project-logo {
-  position: absolute;
-  bottom: 12px;
-  right: 70px;
   width: 60px;
   height: 60px;
   object-fit: contain;
   border-radius: 6px;
-  z-index: 1;
+  flex-shrink: 0;
+  align-self: center;
 }
