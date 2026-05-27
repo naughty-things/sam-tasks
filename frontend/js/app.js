@@ -119,6 +119,9 @@ async function loadTasks() {
 // Render task card HTML
 function renderTaskCard(task) {
   const project = projects.find(p => p.id === task.project_id);
+  const projectLogo = project && project.image_url
+    ? `<img src="${escapeHtml(project.image_url)}" class="task-project-logo" alt="${escapeHtml(project.name)}">`
+    : '';
   const dueDateClass = isOverdue(task.due_date) ? 'overdue' : (isToday(task.due_date) ? 'today' : '');
   const repeatBadge = getRepeatBadge(task);
   const isDone = task.status === 'done';
@@ -133,7 +136,7 @@ function renderTaskCard(task) {
         ${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ''}
         <div class="task-meta">
           <span class="badge badge-status task-status-badge" data-id="${task.id}" title="Click to edit status">${task.status ? escapeHtml(task.status) : '+ status'}</span>
-          ${project ? `<span class="badge badge-project">${escapeHtml(project.name)}</span>` : ''}
+          ${project ? `<span class="badge badge-project">${projectLogo}${escapeHtml(project.name)}</span>` : ''}
           ${task.due_date ? `<span class="task-due ${dueDateClass}">${formatDate(task.due_date)}</span>` : ''}
           <span class="badge badge-priority-${task.priority}">${task.priority}</span>
           ${repeatBadge}
@@ -209,6 +212,25 @@ function collectLinksFromModal() {
     }
   });
   return links.length > 0 ? links : null;
+}
+
+// Upload project image to Supabase Storage
+async function uploadProjectImage(file, projectName) {
+  const client = await getClient();
+  const ext = file.name.split('.').pop();
+  const path = `${projectName}_${Date.now()}.${ext}`;
+  
+  const { data, error } = await client.storage
+    .from('project-images')
+    .upload(path, file, { upsert: true });
+  
+  if (error) throw error;
+  
+  const { data: urlData } = client.storage
+    .from('project-images')
+    .getPublicUrl(path);
+  
+  return urlData.publicUrl;
 }
 
 // Escape HTML to prevent XSS
@@ -570,6 +592,23 @@ function setupProjectModal() {
     e.preventDefault();
     await saveProject();
   });
+  
+  // Project image upload
+  const imageInput = document.getElementById('project-image-input');
+  const imageBtn = document.getElementById('project-image-btn');
+  const imagePreview = document.getElementById('project-image-preview');
+  
+  imageBtn.addEventListener('click', () => imageInput.click());
+  imageInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    window.currentProjectImageFile = file;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      imagePreview.innerHTML = `<img src="${ev.target.result}" class="project-logo-preview">`;
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
 async function openProjectModal() {
@@ -590,6 +629,8 @@ function resetProjectForm() {
   document.getElementById('project-id').value = '';
   document.getElementById('project-form-title').textContent = 'Add Project';
   document.getElementById('project-color').value = '#6366f1';
+  document.getElementById('project-image-preview').innerHTML = '';
+  window.currentProjectImageFile = null;
 }
 
 async function loadProjectList() {
@@ -614,10 +655,13 @@ async function loadProjectList() {
   
   listEl.innerHTML = projects.map(p => {
     const taskCount = projectTaskCounts[p.id] || 0;
+    const logoHtml = p.image_url
+      ? `<img src="${escapeHtml(p.image_url)}" class="project-logo-img" alt="${escapeHtml(p.name)}">`
+      : `<div class="project-color-dot" style="background:${p.color}"></div>`;
     return `
       <div class="project-item" data-id="${p.id}">
         <div class="project-info">
-          <div class="project-color-dot" style="background:${p.color}"></div>
+          ${logoHtml}
           <div class="project-details">
             <div class="project-name">${escapeHtml(p.name)}</div>
             <div class="project-stats">${taskCount} task${taskCount !== 1 ? 's' : ''}</div>
@@ -640,6 +684,14 @@ async function editProject(projectId) {
   document.getElementById('project-name').value = project.name;
   document.getElementById('project-color').value = project.color;
   document.getElementById('project-form-title').textContent = 'Edit Project';
+  window.currentProjectImageFile = null;
+  
+  if (project.image_url) {
+    document.getElementById('project-image-preview').innerHTML =
+      `<img src="${escapeHtml(project.image_url)}" class="project-logo-preview">`;
+  } else {
+    document.getElementById('project-image-preview').innerHTML = '';
+  }
 }
 
 async function saveProject() {
@@ -648,6 +700,16 @@ async function saveProject() {
     name: document.getElementById('project-name').value,
     color: document.getElementById('project-color').value
   };
+  
+  // Upload image if selected
+  if (window.currentProjectImageFile) {
+    try {
+      const imageUrl = await uploadProjectImage(window.currentProjectImageFile, projectId || projects.length.toString());
+      projectData.image_url = imageUrl;
+    } catch (err) {
+      console.error('Image upload error:', err);
+    }
+  }
   
   try {
     if (projectId) {

@@ -35,12 +35,19 @@ CREATE OR REPLACE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- ============================================
+-- STORAGE FOR PROJECT IMAGES
+-- ============================================
+-- Note: bucket 'project-images' created manually in Supabase dashboard
+-- RLS policies for storage.objects added below
+
+-- ============================================
 -- PROJECTS TABLE
 -- ============================================
 CREATE TABLE IF NOT EXISTS public.projects (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   name TEXT NOT NULL,
   color TEXT DEFAULT '#6366f1',
+  image_url TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );

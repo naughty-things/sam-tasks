@@ -177,7 +177,16 @@
               <label for="project-color">Color</label>
               <div style="display:flex;gap:8px;align-items:center;">
                 <input type="color" id="project-color" value="#6366f1" style="width:60px;height:36px;padding:2px;">
-                <span style="color:#888;font-size:12px;">Used for project badge</span>
+                <span style="color:#888;font-size:12px;">Accent color</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Logo Image</label>
+              <div class="project-image-upload" id="project-image-upload-area">
+                <input type="file" id="project-image-input" accept="image/*" style="display:none;">
+                <div id="project-image-preview" class="project-image-preview"></div>
+                <button type="button" id="project-image-btn" class="btn btn-secondary btn-small">Upload Logo</button>
               </div>
             </div>
             

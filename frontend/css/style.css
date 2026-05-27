@@ -874,3 +874,43 @@ h3 { font-size: 1.1rem; }
   color: #3366BB;
   text-decoration: underline;
 }
+
+/* Project logo in task card badge */
+.task-project-logo {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  object-fit: contain;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+/* Project logo in project list */
+.project-logo-img {
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+/* Image upload area in project modal */
+.project-image-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.project-image-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.project-logo-preview {
+  max-width: 80px;
+  max-height: 60px;
+  border-radius: 8px;
+  object-fit: contain;
+  border: 1px solid var(--border);
+}
