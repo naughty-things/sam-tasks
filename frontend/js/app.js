@@ -119,6 +119,9 @@ async function loadTasks() {
 // Render task card HTML
 function renderTaskCard(task) {
   const project = projects.find(p => p.id === task.project_id);
+  const projectLogo = project && project.image_url
+    ? `<img src="${escapeHtml(project.image_url)}" class="task-project-logo" alt="${escapeHtml(project.name)}">`
+    : '';
   const dueDateClass = isOverdue(task.due_date) ? 'overdue' : (isToday(task.due_date) ? 'today' : '');
   const repeatBadge = getRepeatBadge(task);
   const isDone = task.status === 'done';
@@ -133,12 +136,13 @@ function renderTaskCard(task) {
         ${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ''}
         <div class="task-meta">
           <span class="badge badge-status task-status-badge" data-id="${task.id}" title="Click to edit status">${task.status ? escapeHtml(task.status) : '+ status'}</span>
-          ${project ? `<span class="badge badge-project">${escapeHtml(project.name)}</span>` : ''}
+          ${project ? projectLogo : ''}
           ${task.due_date ? `<span class="task-due ${dueDateClass}">${formatDate(task.due_date)}</span>` : ''}
           <span class="badge badge-priority-${task.priority}">${task.priority}</span>
           ${repeatBadge}
         </div>
         ${renderTaskLinks(task.links) ? `<div class="task-links-row">${renderTaskLinks(task.links)}</div>` : ''}
+        <div class="task-card-logo-wrap">${projectLogo}</div>
       </div>
       <div class="task-actions">
         <button class="task-edit-btn" data-id="${task.id}" title="Edit">✏️</button>
