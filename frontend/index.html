@@ -32,17 +32,6 @@
         </select>
       </div>
       <div class="filter-group">
-        <label>Status:</label>
-        <select id="filter-status">
-          <option value="">All Statuses</option>
-          <option value="not_started">Not Started</option>
-          <option value="in_progress">In Progress</option>
-          <option value="waiting">Waiting</option>
-          <option value="done">Done</option>
-          <option value="custom">Custom</option>
-        </select>
-      </div>
-      <div class="filter-group">
         <label>Priority:</label>
         <select id="filter-priority">
           <option value="">All Priorities</option>
@@ -94,31 +83,13 @@
           </div>
         </div>
         
-        <div class="form-row">
-          <div class="form-group">
-            <label for="task-priority">Priority</label>
-            <select id="task-priority">
-              <option value="low">Low</option>
-              <option value="medium" selected>Medium</option>
-              <option value="high">High</option>
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label for="task-status">Status</label>
-            <select id="task-status">
-              <option value="not_started">Not Started</option>
-              <option value="in_progress">In Progress</option>
-              <option value="waiting">Waiting</option>
-              <option value="done">Done</option>
-              <option value="custom">Custom...</option>
-            </select>
-          </div>
-        </div>
-        
-        <div class="form-group hidden" id="custom-status-group">
-          <label for="task-custom-status">Custom Status</label>
-          <input type="text" id="task-custom-status" placeholder="e.g., Waiting for client, On hold...">
+        <div class="form-group">
+          <label for="task-priority">Priority</label>
+          <select id="task-priority">
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+          </select>
         </div>
         
         <div class="form-group">

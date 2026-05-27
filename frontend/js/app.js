@@ -67,6 +67,11 @@ async function loadTasks() {
     emptyState.classList.add('hidden');
     taskList.innerHTML = tasks.map(task => renderTaskCard(task)).join('');
     
+    // Setup tick handlers
+    document.querySelectorAll('.task-tick').forEach(tick => {
+      tick.addEventListener('change', () => toggleTaskDone(tick.dataset.id));
+    });
+    
     // Setup action handlers
     document.querySelectorAll('.task-edit-btn').forEach(btn => {
       btn.addEventListener('click', () => editTask(btn.dataset.id));
@@ -74,10 +79,6 @@ async function loadTasks() {
     
     document.querySelectorAll('.task-delete-btn').forEach(btn => {
       btn.addEventListener('click', () => deleteTaskConfirm(btn.dataset.id));
-    });
-    
-    document.querySelectorAll('.task-complete-btn').forEach(btn => {
-      btn.addEventListener('click', () => completeTask(btn.dataset.id));
     });
     
   } catch (error) {
@@ -90,9 +91,13 @@ function renderTaskCard(task) {
   const project = projects.find(p => p.id === task.project_id);
   const dueDateClass = isOverdue(task.due_date) ? 'overdue' : (isToday(task.due_date) ? 'today' : '');
   const repeatBadge = getRepeatBadge(task);
+  const isDone = task.status === 'done';
   
   return `
-    <div class="task-card priority-${task.priority}${task.status === 'done' ? ' done' : ''}">
+    <div class="task-card priority-${task.priority}${isDone ? ' done' : ''}">
+      <div class="task-tick-wrap">
+        <input type="checkbox" class="task-tick" id="tick-${task.id}" data-id="${task.id}" ${isDone ? 'checked' : ''}>
+      </div>
       <div class="task-main">
         <div class="task-title">${escapeHtml(task.title)}</div>
         ${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ''}
@@ -100,12 +105,10 @@ function renderTaskCard(task) {
           ${project ? `<span class="badge badge-project" style="border-left: 3px solid ${project.color}">${escapeHtml(project.name)}</span>` : ''}
           ${task.due_date ? `<span class="task-due ${dueDateClass}">📅 ${formatDate(task.due_date)}</span>` : ''}
           <span class="badge badge-priority-${task.priority}">${task.priority}</span>
-          <span class="badge badge-status">${escapeHtml(getStatusDisplay(task))}</span>
           ${repeatBadge}
         </div>
       </div>
       <div class="task-actions">
-        ${task.status !== 'done' ? `<button class="task-complete-btn" data-id="${task.id}" title="Complete">✓</button>` : ''}
         <button class="task-edit-btn" data-id="${task.id}" title="Edit">✏️</button>
         <button class="task-delete-btn" data-id="${task.id}" title="Delete">🗑️</button>
       </div>
@@ -153,11 +156,6 @@ function setupFilters() {
     loadTasks();
   });
   
-  document.getElementById('filter-status').addEventListener('change', (e) => {
-    currentFilters.status = e.target.value;
-    loadTasks();
-  });
-  
   document.getElementById('filter-priority').addEventListener('change', (e) => {
     currentFilters.priority = e.target.value;
     loadTasks();
@@ -171,16 +169,6 @@ function setupTaskModal() {
   // Add task button
   document.getElementById('add-task-btn').addEventListener('click', () => {
     openTaskModal();
-  });
-  
-  // Status change handler for custom status
-  document.getElementById('task-status').addEventListener('change', (e) => {
-    const customGroup = document.getElementById('custom-status-group');
-    if (e.target.value === 'custom') {
-      customGroup.classList.remove('hidden');
-    } else {
-      customGroup.classList.add('hidden');
-    }
   });
   
   // Repeat type change handler
@@ -219,7 +207,6 @@ function openTaskModal(taskId = null) {
   
   form.reset();
   document.getElementById('task-id').value = '';
-  document.getElementById('custom-status-group').classList.add('hidden');
   document.getElementById('repeat-days-group').classList.add('hidden');
   document.getElementById('task-repeat').value = 'none';
   
@@ -249,12 +236,6 @@ async function loadTaskForEdit(taskId) {
     document.getElementById('task-project').value = task.project_id || '';
     document.getElementById('task-due-date').value = task.due_date || '';
     document.getElementById('task-priority').value = task.priority || 'medium';
-    document.getElementById('task-status').value = task.status;
-    
-    if (task.status === 'custom') {
-      document.getElementById('custom-status-group').classList.remove('hidden');
-      document.getElementById('task-custom-status').value = task.custom_status || '';
-    }
     
     // Load repeat fields
     const repeatType = task.repeat_type || 'none';
@@ -286,7 +267,6 @@ async function editTask(taskId) {
 
 async function saveTask() {
   const taskId = document.getElementById('task-id').value;
-  const status = document.getElementById('task-status').value;
   const repeatType = document.getElementById('task-repeat').value;
   
   let repeatDays = null;
@@ -303,8 +283,6 @@ async function saveTask() {
     project_id: document.getElementById('task-project').value || null,
     due_date: document.getElementById('task-due-date').value || null,
     priority: document.getElementById('task-priority').value,
-    status: status,
-    custom_status: status === 'custom' ? document.getElementById('task-custom-status').value : null,
     repeat_type: repeatType,
     repeat_days: repeatDays
   };
@@ -324,21 +302,16 @@ async function saveTask() {
   }
 }
 
-// Complete task and create next repeat if needed
-async function completeTask(taskId) {
+// Toggle task done/undone via tick checkbox
+async function toggleTaskDone(taskId) {
   try {
     const task = await getTask(taskId);
+    const isCurrentlyDone = task.status === 'done';
     
-    if (task.repeat_type && task.repeat_type !== 'none') {
-      // Create next repeat task
+    if (!isCurrentlyDone && task.repeat_type && task.repeat_type !== 'none') {
+      // Repeating task: complete and create next
       const nextDueDate = calculateNextDueDate(task.due_date, task.repeat_type, task.repeat_days);
-      
-      await updateTask(taskId, {
-        status: 'done',
-        due_date: task.due_date // Keep original due date
-      });
-      
-      // Create new task with next due date
+      await updateTask(taskId, { status: 'done', due_date: task.due_date });
       await createTask({
         title: task.title,
         description: task.description,
@@ -349,21 +322,30 @@ async function completeTask(taskId) {
         repeat_type: task.repeat_type,
         repeat_days: task.repeat_days
       });
-    } else {
-      // Simple completion
+    } else if (!isCurrentlyDone) {
+      // Simple non-repeating task: mark done
       await updateTask(taskId, { status: 'done' });
-    }
-    
-    // Auto-show Done filter for non-repeating tasks
-    if (!task.repeat_type || task.repeat_type === 'none') {
-      document.getElementById('filter-status').value = 'done';
-      currentFilters.status = 'done';
+    } else {
+      // Toggle back to not done
+      await updateTask(taskId, { status: 'not_started' });
     }
     
     await loadTasks();
   } catch (error) {
-    console.error('Complete task error:', error);
-    alert('Error completing task');
+    console.error('Toggle done error:', error);
+    alert('Error updating task');
+  }
+}
+
+async function deleteTaskConfirm(taskId) {
+  if (!confirm('Delete this task?')) return;
+  
+  try {
+    await deleteTask(taskId);
+    await loadTasks();
+  } catch (error) {
+    console.error('Delete task error:', error);
+    alert('Error deleting task');
   }
 }
 
@@ -379,11 +361,10 @@ function calculateNextDueDate(currentDueDate, repeatType, repeatDays) {
     case 'weekdays':
       do {
         date.setDate(date.getDate() + 1);
-      } while (date.getDay() === 0 || date.getDay() === 6); // Skip weekends
+      } while (date.getDay() === 0 || date.getDay() === 6);
       break;
     case 'weekly':
       if (repeatDays && repeatDays.length > 0) {
-        // Find next day in the week that matches
         const currentDay = date.getDay();
         const sortedDays = [...repeatDays].sort((a, b) => a - b);
         let nextDay = sortedDays.find(d => d > currentDay);
@@ -399,7 +380,6 @@ function calculateNextDueDate(currentDueDate, repeatType, repeatDays) {
       if (repeatDays && repeatDays.length > 0) {
         const targetDay = repeatDays[0];
         date.setMonth(date.getMonth() + 1);
-        // Handle months with fewer days
         const lastDayOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
         date.setDate(Math.min(targetDay, lastDayOfMonth));
       } else {
@@ -409,18 +389,6 @@ function calculateNextDueDate(currentDueDate, repeatType, repeatDays) {
   }
   
   return date.toISOString().split('T')[0];
-}
-
-async function deleteTaskConfirm(taskId) {
-  if (!confirm('Delete this task?')) return;
-  
-  try {
-    await deleteTask(taskId);
-    await loadTasks();
-  } catch (error) {
-    console.error('Delete task error:', error);
-    alert('Error deleting task');
-  }
 }
 
 // ============================================
@@ -478,9 +446,6 @@ function resetProjectForm() {
 
 async function loadProjectList() {
   const listEl = document.getElementById('project-list');
-  
-  // Reload projects from DB
-  projects = await getProjects();
   
   // Get task counts per project
   projectTaskCounts = {};
@@ -543,7 +508,6 @@ async function saveProject() {
       await createProject(projectData);
     }
     
-    // Reload projects and dropdowns
     projects = await getProjects();
     populateProjectDropdowns();
     await loadProjectList();
