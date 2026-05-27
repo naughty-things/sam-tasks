@@ -90,7 +90,6 @@ async function getProjects() {
   const { data, error } = await client
     .from('projects')
     .select('*')
-    .eq('user_id', user.id)
     .order('name');
   
   if (error) throw error;
@@ -102,10 +101,7 @@ async function createProject(projectData) {
   const client = await getClient();
   const { data: { user } } = await client.auth.getUser();
   
-  const { data, error } = await client.from('projects').insert({
-    ...projectData,
-    user_id: user.id
-  }).select();
+  const { data, error } = await client.from('projects').insert(projectData).select();
   
   if (error) throw error;
   return data[0];

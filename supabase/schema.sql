@@ -39,7 +39,6 @@ CREATE OR REPLACE TRIGGER on_auth_user_created
 -- ============================================
 CREATE TABLE IF NOT EXISTS public.projects (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   name TEXT NOT NULL,
   color TEXT DEFAULT '#6366f1',
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -85,21 +84,18 @@ CREATE POLICY "Users can view own profile" ON public.profiles
 CREATE POLICY "Users can update own profile" ON public.profiles
   FOR UPDATE USING (auth.uid() = id);
 
--- Projects: users can only see/edit their own projects
-CREATE POLICY "Users can view own projects" ON public.projects
-  FOR SELECT USING (auth.uid() = user_id);
+-- Projects: all authenticated users can view/edit shared projects
+CREATE POLICY "Authenticated users can view all projects" ON public.projects
+  FOR SELECT USING (auth.role() = 'authenticated');
 
-CREATE POLICY "Users can insert own projects" ON public.projects
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Authenticated users can insert projects" ON public.projects
+  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
 
-CREATE POLICY "Users can update own projects" ON public.projects
-  FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Authenticated users can update projects" ON public.projects
+  FOR UPDATE USING (auth.role() = 'authenticated');
 
-CREATE POLICY "Users can delete own projects" ON public.projects
-  FOR DELETE USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete own projects" ON public.projects
-  FOR DELETE USING (auth.uid() = user_id);
+CREATE POLICY "Authenticated users can delete projects" ON public.projects
+  FOR DELETE USING (auth.role() = 'authenticated');
 
 -- Tasks: users can only see/edit their own tasks
 CREATE POLICY "Users can view own tasks" ON public.tasks
