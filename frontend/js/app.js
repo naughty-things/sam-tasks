@@ -140,8 +140,8 @@ function renderTaskCard(task) {
           ${task.due_date ? `<span class="task-due ${dueDateClass}">${formatDate(task.due_date)}</span>` : ''}
           <span class="badge badge-priority-${task.priority}">${task.priority}</span>
           ${repeatBadge}
-          ${renderTaskLinks(task.links)}
         </div>
+        ${renderTaskLinks(task.links) ? `<div class="task-links-row">${renderTaskLinks(task.links)}</div>` : ''}
       </div>
       <div class="task-actions">
         <button class="task-edit-btn" data-id="${task.id}" title="Edit">✏️</button>
