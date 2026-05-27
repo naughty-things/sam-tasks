@@ -351,6 +351,38 @@ h3 { font-size: 1.1rem; }
 
 .filter-group select:focus { outline: none; }
 
+/* Hide-done toggle */
+.filter-toggle {
+  margin-left: auto;
+  cursor: pointer;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.toggle-text {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.toggle-label:has(input:checked) .toggle-text {
+  color: var(--primary);
+}
+
 /* ============================================
    Task List
    ============================================ */

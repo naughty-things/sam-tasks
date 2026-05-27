@@ -5,6 +5,7 @@
 let currentUser = null;
 let projects = [];
 let currentFilters = {};
+let hideDone = false;
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', async () => {
@@ -64,10 +65,18 @@ async function loadTasks() {
       return;
     }
     
-    // Check if any repeating done tasks have auto-cycled
-    await checkRepeatingTaskCycles(tasks);
+    // Check repeating task cycles — always check ALL tasks (ignore hideDone) so
+    // done repeating tasks auto-reset even when hidden
+    const allTasks = await getTasks({});
+    await checkRepeatingTaskCycles(allTasks);
     // Reload after updates
     tasks = await getTasks(currentFilters);
+    
+    // Apply hide-done filter client-side
+    if (hideDone) {
+      tasks = tasks.filter(t => t.status !== 'done');
+    }
+    
     if (tasks.length === 0) {
       taskList.innerHTML = '';
       emptyState.classList.remove('hidden');
@@ -175,6 +184,11 @@ function setupFilters() {
   
   document.getElementById('filter-priority').addEventListener('change', (e) => {
     currentFilters.priority = e.target.value;
+    loadTasks();
+  });
+  
+  document.getElementById('filter-hide-done').addEventListener('change', (e) => {
+    hideDone = e.target.checked;
     loadTasks();
   });
 }
