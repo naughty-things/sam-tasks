@@ -919,16 +919,16 @@ h3 { font-size: 1.1rem; }
   position: absolute;
   bottom: 0;
   right: 0;
-  width: 52px;
-  height: 52px;
+  width: 72px;
+  height: 72px;
 }
 
 .task-card-logo {
-  width: 52px;
-  height: 52px;
+  width: 72px;
+  height: 72px;
   object-fit: contain;
   border-radius: 8px;
-  opacity: 0.75;
+  opacity: 0.85;
 }
 
 /* Links row — separate line below meta */
