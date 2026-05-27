@@ -42,7 +42,8 @@ CREATE TABLE IF NOT EXISTS public.projects (
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   name TEXT NOT NULL,
   color TEXT DEFAULT '#6366f1',
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- ============================================
@@ -93,6 +94,9 @@ CREATE POLICY "Users can insert own projects" ON public.projects
 
 CREATE POLICY "Users can update own projects" ON public.projects
   FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own projects" ON public.projects
+  FOR DELETE USING (auth.uid() = user_id);
 
 CREATE POLICY "Users can delete own projects" ON public.projects
   FOR DELETE USING (auth.uid() = user_id);

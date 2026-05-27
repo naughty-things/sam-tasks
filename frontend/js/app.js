@@ -92,7 +92,7 @@ function renderTaskCard(task) {
   const repeatBadge = getRepeatBadge(task);
   
   return `
-    <div class="task-card priority-${task.priority}">
+    <div class="task-card priority-${task.priority}${task.status === 'done' ? ' done' : ''}">
       <div class="task-main">
         <div class="task-title">${escapeHtml(task.title)}</div>
         ${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ''}
@@ -352,6 +352,12 @@ async function completeTask(taskId) {
     } else {
       // Simple completion
       await updateTask(taskId, { status: 'done' });
+    }
+    
+    // Auto-show Done filter for non-repeating tasks
+    if (!task.repeat_type || task.repeat_type === 'none') {
+      document.getElementById('filter-status').value = 'done';
+      currentFilters.status = 'done';
     }
     
     await loadTasks();
