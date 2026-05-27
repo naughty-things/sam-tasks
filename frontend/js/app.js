@@ -56,7 +56,7 @@ async function loadTasks() {
   const emptyState = document.getElementById('empty-state');
   
   try {
-    const tasks = await getTasks(currentFilters);
+    let tasks = await getTasks(currentFilters);
     
     if (tasks.length === 0) {
       taskList.innerHTML = '';
