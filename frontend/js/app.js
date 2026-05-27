@@ -177,8 +177,8 @@ function renderTaskLinks(links) {
   return links.map(link => {
     const safeUrl = escapeHtml(link.url);
     const safeName = escapeHtml(link.name || link.url);
-    return `<a href="${safeUrl}" target="_blank" rel="noopener" class="badge badge-link" title="${safeUrl}">${safeName}</a>`;
-  }).join('');
+    return `<a href="${safeUrl}" target="_blank" rel="noopener" class="task-link" title="${safeUrl}">${safeName} ↗</a>`;
+  }).join(' ');
 }
 
 // Add a single link input row to the modal
