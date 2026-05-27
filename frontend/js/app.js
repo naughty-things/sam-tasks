@@ -64,6 +64,16 @@ async function loadTasks() {
       return;
     }
     
+    // Check if any repeating done tasks have auto-cycled
+    await checkRepeatingTaskCycles(tasks);
+    // Reload after updates
+    tasks = await getTasks(currentFilters);
+    if (tasks.length === 0) {
+      taskList.innerHTML = '';
+      emptyState.classList.remove('hidden');
+      return;
+    }
+    
     emptyState.classList.add('hidden');
     taskList.innerHTML = tasks.map(task => renderTaskCard(task)).join('');
     
@@ -287,7 +297,8 @@ async function saveTask() {
     priority: document.getElementById('task-priority').value,
     status: document.getElementById('task-status').value || null,
     repeat_type: repeatType,
-    repeat_days: repeatDays
+    repeat_days: repeatDays,
+    next_due_date: null
   };
   
   try {
@@ -312,21 +323,54 @@ async function toggleTaskDone(taskId) {
     const isCurrentlyDone = task.status === 'done';
     
     if (!isCurrentlyDone && task.repeat_type && task.repeat_type !== 'none') {
-      // Repeating task: advance due date to next cycle, keep same task
+      // Repeating task: mark done and store next cycle date
       const nextDueDate = calculateNextDueDate(task.due_date, task.repeat_type, task.repeat_days);
-      await updateTask(taskId, { status: 'not_started', due_date: nextDueDate });
+      await updateTask(taskId, {
+        status: 'done',
+        next_due_date: nextDueDate
+      });
     } else if (!isCurrentlyDone) {
       // Simple non-repeating task: mark done
       await updateTask(taskId, { status: 'done' });
     } else {
       // Toggle back to not done
-      await updateTask(taskId, { status: 'not_started' });
+      await updateTask(taskId, { status: 'not_started', next_due_date: null });
     }
     
     await loadTasks();
   } catch (error) {
     console.error('Toggle done error:', error);
     alert('Error updating task');
+  }
+}
+
+// Check if any repeating done tasks have reached their next due date
+// If so, auto-reset them to not_started and advance the due date
+async function checkRepeatingTaskCycles(tasks) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const updates = [];
+  
+  for (const task of tasks) {
+    if (task.repeat_type && task.repeat_type !== 'none' &&
+        task.status === 'done' && task.next_due_date) {
+      const nextDate = new Date(task.next_due_date);
+      nextDate.setHours(0, 0, 0, 0);
+      if (today >= nextDate) {
+        // New cycle has arrived — reset task
+        const newDueDate = calculateNextDueDate(task.next_due_date, task.repeat_type, task.repeat_days);
+        const newNextDueDate = calculateNextDueDate(newDueDate, task.repeat_type, task.repeat_days);
+        updates.push(updateTask(task.id, {
+          status: 'not_started',
+          due_date: newDueDate,
+          next_due_date: newNextDueDate
+        }));
+      }
+    }
+  }
+  
+  if (updates.length > 0) {
+    await Promise.all(updates);
   }
 }
 
