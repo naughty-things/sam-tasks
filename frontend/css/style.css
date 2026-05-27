@@ -555,6 +555,27 @@ h3 { font-size: 1.1rem; }
   background: rgba(196, 98, 45, 0.08);
   color: var(--primary);
   border: 1px solid rgba(196, 98, 45, 0.2);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.badge-status:hover {
+  background: rgba(196, 98, 45, 0.14);
+  border-color: rgba(196, 98, 45, 0.35);
+}
+
+.status-inline-input {
+  background: rgba(196, 98, 45, 0.08);
+  border: 1.5px solid var(--primary);
+  color: var(--text);
+  padding: 0.2rem 0.55rem;
+  border-radius: 99px;
+  font-size: 0.72rem;
+  font-family: var(--font-body);
+  font-weight: 500;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(196, 98, 45, 0.1);
+  width: 160px;
 }
 
 /* Repeat badge */

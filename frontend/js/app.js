@@ -106,6 +106,11 @@ async function loadTasks() {
       btn.addEventListener('click', () => deleteTaskConfirm(btn.dataset.id));
     });
     
+    // Setup inline status editing
+    document.querySelectorAll('.task-status-badge').forEach(badge => {
+      badge.addEventListener('click', () => inlineEditStatus(badge));
+    });
+    
   } catch (error) {
     console.error('Load tasks error:', error);
   }
@@ -127,7 +132,7 @@ function renderTaskCard(task) {
         <div class="task-title">${escapeHtml(task.title)}</div>
         ${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ''}
         <div class="task-meta">
-          ${task.status ? `<span class="badge badge-status">${escapeHtml(task.status)}</span>` : ''}
+          <span class="badge badge-status task-status-badge" data-id="${task.id}" title="Click to edit status">${task.status ? escapeHtml(task.status) : '+ status'}</span>
           ${project ? `<span class="badge badge-project">${escapeHtml(project.name)}</span>` : ''}
           ${task.due_date ? `<span class="task-due ${dueDateClass}">${formatDate(task.due_date)}</span>` : ''}
           <span class="badge badge-priority-${task.priority}">${task.priority}</span>
@@ -171,6 +176,40 @@ function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
+}
+
+// Inline status edit
+async function inlineEditStatus(badgeEl) {
+  const taskId = badgeEl.dataset.id;
+  const currentStatus = badgeEl.textContent === '+ status' ? '' : badgeEl.textContent;
+  
+  // Replace badge with input
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = currentStatus;
+  input.className = 'status-inline-input';
+  input.placeholder = 'Status...';
+  input.maxLength = 100;
+  
+  badgeEl.replaceWith(input);
+  input.focus();
+  input.select();
+  
+  const save = async () => {
+    const newStatus = input.value.trim() || null;
+    try {
+      await updateTask(taskId, { status: newStatus });
+      await loadTasks();
+    } catch (err) {
+      console.error('Status update error:', err);
+    }
+  };
+  
+  input.addEventListener('blur', save);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+    if (e.key === 'Escape') { loadTasks(); }
+  });
 }
 
 // ============================================
