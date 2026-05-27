@@ -111,6 +111,20 @@ async function createProject(projectData) {
   return data[0];
 }
 
+// Update project
+async function updateProject(projectId, projectData) {
+  const client = await getClient();
+  
+  const { data, error } = await client
+    .from('projects')
+    .update(projectData)
+    .eq('id', projectId)
+    .select();
+  
+  if (error) throw error;
+  return data[0];
+}
+
 // Delete project
 async function deleteProject(projectId) {
   const client = await getClient();

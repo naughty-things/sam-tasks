@@ -437,14 +437,135 @@ function populateProjectDropdowns() {
 }
 
 // ============================================
-// Project Modal (simplified - add from task modal)
+// Project Modal
 // ============================================
+let projectTaskCounts = {};
+
 function setupProjectModal() {
-  // For now, projects are created inline
-  // You can extend this if needed
+  document.getElementById('manage-projects-btn').addEventListener('click', openProjectModal);
+  document.getElementById('cancel-project-btn').addEventListener('click', () => resetProjectForm());
+  document.getElementById('project-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    await saveProject();
+  });
 }
 
-// Close project modal
+async function openProjectModal() {
+  const modal = document.getElementById('project-modal');
+  modal.classList.remove('hidden');
+  resetProjectForm();
+  projects = await getProjects();
+  populateProjectDropdowns();
+  await loadProjectList();
+}
+
 function closeProjectModal() {
   document.getElementById('project-modal').classList.add('hidden');
+}
+
+function resetProjectForm() {
+  document.getElementById('project-form').reset();
+  document.getElementById('project-id').value = '';
+  document.getElementById('project-form-title').textContent = 'Add Project';
+  document.getElementById('project-color').value = '#6366f1';
+}
+
+async function loadProjectList() {
+  const listEl = document.getElementById('project-list');
+  
+  // Reload projects from DB
+  projects = await getProjects();
+  
+  // Get task counts per project
+  projectTaskCounts = {};
+  const client = await getClient();
+  const { data: { user } } = await client.auth.getUser();
+  const { data: tasks } = await client.from('tasks').select('project_id').eq('user_id', user.id);
+  
+  tasks.forEach(t => {
+    if (t.project_id) {
+      projectTaskCounts[t.project_id] = (projectTaskCounts[t.project_id] || 0) + 1;
+    }
+  });
+  
+  if (projects.length === 0) {
+    listEl.innerHTML = '<p style="color:#888;text-align:center;padding:20px;">No projects yet. Create your first one!</p>';
+    return;
+  }
+  
+  listEl.innerHTML = projects.map(p => {
+    const taskCount = projectTaskCounts[p.id] || 0;
+    return `
+      <div class="project-item" data-id="${p.id}">
+        <div class="project-info">
+          <div class="project-color-dot" style="background:${p.color}"></div>
+          <div class="project-details">
+            <div class="project-name">${escapeHtml(p.name)}</div>
+            <div class="project-stats">${taskCount} task${taskCount !== 1 ? 's' : ''}</div>
+          </div>
+        </div>
+        <div class="project-actions">
+          <button class="btn btn-small" onclick="editProject('${p.id}')">Edit</button>
+          <button class="btn btn-small btn-danger" onclick="deleteProjectConfirm('${p.id}')">Delete</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function editProject(projectId) {
+  const project = projects.find(p => p.id === projectId);
+  if (!project) return;
+  
+  document.getElementById('project-id').value = project.id;
+  document.getElementById('project-name').value = project.name;
+  document.getElementById('project-color').value = project.color;
+  document.getElementById('project-form-title').textContent = 'Edit Project';
+}
+
+async function saveProject() {
+  const projectId = document.getElementById('project-id').value;
+  const projectData = {
+    name: document.getElementById('project-name').value,
+    color: document.getElementById('project-color').value
+  };
+  
+  try {
+    if (projectId) {
+      await updateProject(projectId, projectData);
+    } else {
+      await createProject(projectData);
+    }
+    
+    // Reload projects and dropdowns
+    projects = await getProjects();
+    populateProjectDropdowns();
+    await loadProjectList();
+    resetProjectForm();
+  } catch (error) {
+    console.error('Save project error:', error);
+    alert('Error saving project');
+  }
+}
+
+async function deleteProjectConfirm(projectId) {
+  const project = projects.find(p => p.id === projectId);
+  if (!project) return;
+  
+  const taskCount = projectTaskCounts[projectId] || 0;
+  const msg = taskCount > 0
+    ? `Delete "${project.name}"? It has ${taskCount} task${taskCount !== 1 ? 's' : ''}. Tasks will NOT be deleted, just unlinked.`
+    : `Delete "${project.name}"?`;
+  
+  if (!confirm(msg)) return;
+  
+  try {
+    await deleteProject(projectId);
+    projects = await getProjects();
+    populateProjectDropdowns();
+    await loadProjectList();
+  } catch (error) {
+    console.error('Delete project error:', error);
+    alert('Error deleting project');
+  }
 }
