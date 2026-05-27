@@ -312,19 +312,9 @@ async function toggleTaskDone(taskId) {
     const isCurrentlyDone = task.status === 'done';
     
     if (!isCurrentlyDone && task.repeat_type && task.repeat_type !== 'none') {
-      // Repeating task: complete and create next
+      // Repeating task: advance due date to next cycle, keep same task
       const nextDueDate = calculateNextDueDate(task.due_date, task.repeat_type, task.repeat_days);
-      await updateTask(taskId, { status: 'done', due_date: task.due_date });
-      await createTask({
-        title: task.title,
-        description: task.description,
-        project_id: task.project_id,
-        due_date: nextDueDate,
-        priority: task.priority,
-        status: 'not_started',
-        repeat_type: task.repeat_type,
-        repeat_days: task.repeat_days
-      });
+      await updateTask(taskId, { status: 'not_started', due_date: nextDueDate });
     } else if (!isCurrentlyDone) {
       // Simple non-repeating task: mark done
       await updateTask(taskId, { status: 'done' });
