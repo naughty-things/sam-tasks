@@ -102,6 +102,7 @@ function renderTaskCard(task) {
         <div class="task-title">${escapeHtml(task.title)}</div>
         ${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ''}
         <div class="task-meta">
+          ${task.status ? `<span class="badge badge-status">${escapeHtml(task.status)}</span>` : ''}
           ${project ? `<span class="badge badge-project" style="border-left: 3px solid ${project.color}">${escapeHtml(project.name)}</span>` : ''}
           ${task.due_date ? `<span class="task-due ${dueDateClass}">📅 ${formatDate(task.due_date)}</span>` : ''}
           <span class="badge badge-priority-${task.priority}">${task.priority}</span>
@@ -236,6 +237,7 @@ async function loadTaskForEdit(taskId) {
     document.getElementById('task-project').value = task.project_id || '';
     document.getElementById('task-due-date').value = task.due_date || '';
     document.getElementById('task-priority').value = task.priority || 'medium';
+    document.getElementById('task-status').value = task.status || '';
     
     // Load repeat fields
     const repeatType = task.repeat_type || 'none';
@@ -283,6 +285,7 @@ async function saveTask() {
     project_id: document.getElementById('task-project').value || null,
     due_date: document.getElementById('task-due-date').value || null,
     priority: document.getElementById('task-priority').value,
+    status: document.getElementById('task-status').value || null,
     repeat_type: repeatType,
     repeat_days: repeatDays
   };

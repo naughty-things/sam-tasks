@@ -169,8 +169,7 @@ body {
 .task-card.priority-high { border-left: 3px solid var(--danger); }
 .task-card.priority-medium { border-left: 3px solid var(--warning); }
 .task-card.priority-low { border-left: 3px solid var(--success); }
-.task-card.done { border-left: 3px solid var(--success); background: rgba(34, 197, 94, 0.08); opacity: 0.75; }
-.task-card.done .task-title { text-decoration: line-through; color: var(--text-muted); }
+.task-card.done { border-left: 3px solid var(--success); }
 
 /* Tick checkbox */
 .task-tick-wrap { display: flex; align-items: flex-start; padding-top: 0.15rem; }
@@ -201,6 +200,7 @@ body {
 .badge-priority-high { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
 .badge-priority-medium { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
 .badge-priority-low { background: rgba(34, 197, 94, 0.2); color: var(--success); }
+.badge-status { background: rgba(99, 102, 241, 0.2); color: var(--primary); }
 
 
 .task-actions { display: flex; gap: 0.5rem; }
