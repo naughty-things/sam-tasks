@@ -147,7 +147,7 @@ function renderTaskCard(task) {
         <button class="task-edit-btn" data-id="${task.id}" title="Edit">✏️</button>
         <button class="task-delete-btn" data-id="${task.id}" title="Delete">🗑️</button>
       </div>
-      ${projectLogo ? `<div class="task-card-logo"><img src="${escapeHtml(project.image_url)}" alt="${escapeHtml(project.name)}"></div>` : ''}
+      ${projectLogo ? `<div class="task-card-logo-wrap"><img src="${escapeHtml(project.image_url)}" class="task-card-logo" alt="${escapeHtml(project.name)}"></div>` : ''}
     </div>
   `;
 }
