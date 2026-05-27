@@ -927,9 +927,9 @@ h3 { font-size: 1.1rem; }
 .task-project-logo {
   position: absolute;
   bottom: 12px;
-  right: 60px;
-  width: 30px;
-  height: 30px;
+  right: 130px;
+  width: 60px;
+  height: 60px;
   object-fit: contain;
   border-radius: 6px;
   z-index: 1;
