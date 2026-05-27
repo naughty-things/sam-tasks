@@ -482,7 +482,13 @@ h3 { font-size: 1.1rem; }
 
 .task-tick:hover { transform: scale(1.1); }
 
-.task-main { flex: 1; min-width: 0; }
+.task-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
 
 .task-title {
   font-weight: 600;
@@ -908,15 +914,13 @@ h3 { font-size: 1.1rem; }
   border: 1px solid var(--border);
 }
 
-/* Project logo — right side of task card, anchored bottom-right */
+/* Project logo — bottom-right of task-main section */
 .task-card-logo-wrap {
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: flex-end;
-  width: 56px;
-  height: 56px;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 52px;
+  height: 52px;
 }
 
 .task-card-logo {
@@ -924,7 +928,7 @@ h3 { font-size: 1.1rem; }
   height: 52px;
   object-fit: contain;
   border-radius: 8px;
-  opacity: 0.8;
+  opacity: 0.75;
 }
 
 /* Links row — separate line below meta */
@@ -934,5 +938,6 @@ h3 { font-size: 1.1rem; }
   gap: 6px;
   margin-top: 6px;
   padding-top: 6px;
+  padding-right: 60px;
   border-top: 1px solid var(--border);
 }
