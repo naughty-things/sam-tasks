@@ -77,6 +77,12 @@ async function loadTasks() {
     emptyState.classList.add('hidden');
     taskList.innerHTML = tasks.map(task => renderTaskCard(task)).join('');
     
+    // Update task count label
+    const label = document.getElementById('task-count-label');
+    if (label) {
+      label.textContent = `${tasks.length} task${tasks.length !== 1 ? 's' : ''}`;
+    }
+    
     // Setup tick handlers
     document.querySelectorAll('.task-tick').forEach(tick => {
       tick.addEventListener('change', () => toggleTaskDone(tick.dataset.id));
@@ -113,8 +119,8 @@ function renderTaskCard(task) {
         ${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ''}
         <div class="task-meta">
           ${task.status ? `<span class="badge badge-status">${escapeHtml(task.status)}</span>` : ''}
-          ${project ? `<span class="badge badge-project" style="border-left: 3px solid ${project.color}">${escapeHtml(project.name)}</span>` : ''}
-          ${task.due_date ? `<span class="task-due ${dueDateClass}">📅 ${formatDate(task.due_date)}</span>` : ''}
+          ${project ? `<span class="badge badge-project">${escapeHtml(project.name)}</span>` : ''}
+          ${task.due_date ? `<span class="task-due ${dueDateClass}">${formatDate(task.due_date)}</span>` : ''}
           <span class="badge badge-priority-${task.priority}">${task.priority}</span>
           ${repeatBadge}
         </div>
@@ -132,10 +138,10 @@ function getRepeatBadge(task) {
   if (!task.repeat_type || task.repeat_type === 'none') return '';
   
   const repeatLabels = {
-    'daily': '🔁 Daily',
-    'weekdays': '🔁 Weekdays',
-    'weekly': '🔁 Weekly',
-    'monthly': '🔁 Monthly'
+    'daily': '↻ Daily',
+    'weekdays': '↻ Weekdays',
+    'weekly': '↻ Weekly',
+    'monthly': '↻ Monthly'
   };
   
   let extra = '';
@@ -147,7 +153,7 @@ function getRepeatBadge(task) {
     extra = ` (${task.repeat_days[0]}th)`;
   }
   
-  return `<span class="badge" style="background:rgba(99,102,241,0.2);color:#a0a0c0;">${repeatLabels[task.repeat_type]}${extra}</span>`;
+  return `<span class="badge badge-repeat">${repeatLabels[task.repeat_type]}${extra}</span>`;
 }
 
 // Escape HTML to prevent XSS

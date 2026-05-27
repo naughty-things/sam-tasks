@@ -8,19 +8,25 @@
 </head>
 <body>
   <nav class="navbar">
-    <div class="nav-brand">Sam Tasks</div>
+    <div class="nav-brand">
+      <div class="nav-brand-mark">✓</div>
+      Sam Tasks
+    </div>
     <div class="nav-user">
-      <span id="user-email"></span>
-      <button id="logout-btn" class="btn btn-small">Logout</button>
+      <span id="user-email" class="nav-user-email"></span>
+      <button id="logout-btn" class="btn btn-secondary btn-small">Sign out</button>
     </div>
   </nav>
 
   <div class="container">
-    <div class="header">
-      <h1>My Tasks</h1>
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">My Tasks</h1>
+        <p class="page-subtitle" id="task-count-label"></p>
+      </div>
       <div class="header-actions">
-        <button id="manage-projects-btn" class="btn btn-secondary">⚙️ Manage Projects</button>
-        <button id="add-task-btn" class="btn btn-primary">+ Add Task</button>
+        <button id="manage-projects-btn" class="btn btn-secondary">⚙️ Projects</button>
+        <button id="add-task-btn" class="btn btn-primary">+ New Task</button>
       </div>
     </div>
 
@@ -44,7 +50,8 @@
 
     <div id="task-list" class="task-list"></div>
     <div id="empty-state" class="empty-state hidden">
-      <p>No tasks found. Click "Add Task" to create one!</p>
+      <div class="empty-state-icon">📋</div>
+      <p>No tasks here yet. Create your first one above!</p>
     </div>
   </div>
 
