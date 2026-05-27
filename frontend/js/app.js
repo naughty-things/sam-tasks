@@ -137,6 +137,7 @@ function renderTaskCard(task) {
           ${task.due_date ? `<span class="task-due ${dueDateClass}">${formatDate(task.due_date)}</span>` : ''}
           <span class="badge badge-priority-${task.priority}">${task.priority}</span>
           ${repeatBadge}
+          ${renderTaskLinks(task.links)}
         </div>
       </div>
       <div class="task-actions">
@@ -168,6 +169,46 @@ function getRepeatBadge(task) {
   }
   
   return `<span class="badge badge-repeat">${repeatLabels[task.repeat_type]}${extra}</span>`;
+}
+
+// Render clickable link badges on task card
+function renderTaskLinks(links) {
+  if (!links || !Array.isArray(links) || links.length === 0) return '';
+  return links.map(link => {
+    const safeUrl = escapeHtml(link.url);
+    const safeName = escapeHtml(link.name || link.url);
+    return `<a href="${safeUrl}" target="_blank" rel="noopener" class="badge badge-link" title="${safeUrl}">${safeName}</a>`;
+  }).join('');
+}
+
+// Add a single link input row to the modal
+function addLinkRow(url = '', name = '') {
+  const container = document.getElementById('task-links-list');
+  const row = document.createElement('div');
+  row.className = 'link-row';
+  row.innerHTML = `
+    <input type="url" class="link-url-input" placeholder="https://..." value="${escapeHtml(url)}">
+    <input type="text" class="link-name-input" placeholder="Link name" value="${escapeHtml(name)}">
+    <button type="button" class="link-remove-btn" title="Remove link">×</button>
+  `;
+  row.querySelector('.link-remove-btn').addEventListener('click', () => row.remove());
+  container.appendChild(row);
+}
+
+// Collect links from modal
+function collectLinksFromModal() {
+  const rows = document.querySelectorAll('.link-row');
+  const links = [];
+  rows.forEach(row => {
+    const urlInput = row.querySelector('.link-url-input');
+    const nameInput = row.querySelector('.link-name-input');
+    const url = urlInput.value.trim();
+    const linkName = nameInput.value.trim();
+    if (url) {
+      links.push({ url, name: linkName || url });
+    }
+  });
+  return links.length > 0 ? links : null;
 }
 
 // Escape HTML to prevent XSS
@@ -268,6 +309,9 @@ function setupTaskModal() {
     e.preventDefault();
     await saveTask();
   });
+  
+  // Add link button
+  document.getElementById('add-link-btn').addEventListener('click', () => addLinkRow());
 }
 
 function openTaskModal(taskId = null) {
@@ -279,6 +323,7 @@ function openTaskModal(taskId = null) {
   document.getElementById('task-id').value = '';
   document.getElementById('repeat-days-group').classList.add('hidden');
   document.getElementById('task-repeat').value = 'none';
+  document.getElementById('task-links-list').innerHTML = '';
   
   populateProjectDropdowns();
   
@@ -307,6 +352,12 @@ async function loadTaskForEdit(taskId) {
     document.getElementById('task-due-date').value = task.due_date || '';
     document.getElementById('task-priority').value = task.priority || 'medium';
     document.getElementById('task-status').value = task.status || '';
+    
+    // Load links
+    document.getElementById('task-links-list').innerHTML = '';
+    if (task.links && Array.isArray(task.links) && task.links.length > 0) {
+      task.links.forEach(link => addLinkRow(link.url || '', link.name || ''));
+    }
     
     // Load repeat fields
     const repeatType = task.repeat_type || 'none';
@@ -357,7 +408,8 @@ async function saveTask() {
     status: document.getElementById('task-status').value || null,
     repeat_type: repeatType,
     repeat_days: repeatDays,
-    next_due_date: null
+    next_due_date: null,
+    links: collectLinksFromModal()
   };
   
   try {

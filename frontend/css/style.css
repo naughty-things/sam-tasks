@@ -809,3 +809,65 @@ h3 { font-size: 1.1rem; }
   .navbar { padding: 0.85rem 1rem; }
   .modal-content { padding: 1.5rem; border-radius: var(--radius-lg); }
 }
+
+/* Link rows in modal */
+.link-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.link-row .link-url-input,
+.link-row .link-name-input {
+  background: var(--bg-input);
+  border: 1.5px solid var(--border);
+  color: var(--text);
+  padding: 0.45rem 0.75rem;
+  border-radius: var(--radius-md);
+  font-size: 0.88rem;
+  font-family: var(--font-body);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  flex: 1;
+}
+
+.link-row .link-url-input:focus,
+.link-row .link-name-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(196, 98, 45, 0.1);
+}
+
+.link-remove-btn {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.link-remove-btn:hover {
+  background: rgba(196, 61, 46, 0.1);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+/* Link badge on task card */
+.badge-link {
+  background: rgba(61, 158, 110, 0.1);
+  color: var(--success);
+  border: 1px solid rgba(61, 158, 110, 0.25);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.badge-link:hover {
+  background: rgba(61, 158, 110, 0.18);
+  text-decoration: underline;
+}
