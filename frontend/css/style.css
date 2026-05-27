@@ -423,7 +423,7 @@ h3 { font-size: 1.1rem; }
   padding: 1.1rem 1.25rem;
   display: flex;
   gap: 1rem;
-  align-items: stretch;
+  align-items: flex-start;
   border: 1.5px solid var(--border);
   box-shadow: var(--shadow-sm);
   transition:
@@ -432,7 +432,6 @@ h3 { font-size: 1.1rem; }
     transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   animation: fadeUp 0.4s ease-out both;
   overflow: hidden;
-  position: relative;
 }
 
 .task-card:nth-child(1) { animation-delay: 0ms; }
@@ -912,23 +911,6 @@ h3 { font-size: 1.1rem; }
   border-radius: 8px;
   object-fit: contain;
   border: 1px solid var(--border);
-}
-
-/* Project logo — bottom-right of task card, anchored to card edge */
-.task-card-logo-wrap {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  width: 72px;
-  height: 72px;
-}
-
-.task-card-logo {
-  width: 72px;
-  height: 72px;
-  object-fit: contain;
-  border-radius: 8px;
-  opacity: 0.85;
 }
 
 /* Links row — separate line below meta */
