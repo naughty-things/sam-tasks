@@ -7,7 +7,50 @@ let projects = [];
 let currentFilters = {};
 let hideDone = false;
 
-// Initialize app
+// ============================================
+// Helpers — greeting & date formatting
+// ============================================
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h >= 5 && h < 12) return 'Good morning';
+  if (h >= 12 && h < 17) return 'Good afternoon';
+  if (h >= 17 && h < 21) return 'Good evening';
+  return 'Good night';
+}
+
+function getFirstName(email) {
+  if (!email) return 'there';
+  const local = email.split('@')[0];
+  // Try to get first name from common patterns: first.last or first
+  const parts = local.split(/[._-]/);
+  return parts[0].charAt(0).toUpperCase() + parts[0].slice(1).toLowerCase();
+}
+
+function formatNavDate() {
+  const d = new Date();
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return `${days[d.getDay()]}, ${months[d.getMonth()]} ${d.getDate()}`;
+}
+
+function formatDueDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr + 'T00:00:00');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const diff = Math.round((d - today) / 86400000);
+  if (diff === 0) return 'Today';
+  if (diff === 1) return 'Tomorrow';
+  if (diff === -1) return 'Yesterday';
+  if (diff > 1 && diff < 7) return `In ${diff} days`;
+  if (diff < 0 && diff > -7) return `${Math.abs(diff)} days ago`;
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${days[d.getDay()]}, ${months[d.getMonth()]} ${d.getDate()}`;
+}
+
+// ============================================
+// Initialize App
+// ============================================
 document.addEventListener('DOMContentLoaded', async () => {
   const currentPage = window.location.pathname.split('/').pop();
   if (currentPage !== 'index.html' && currentPage !== '') return;
@@ -24,8 +67,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     currentUser = user;
     
-    // Display user email
+    // Display user email + navbar date
     document.getElementById('user-email').textContent = user.email;
+    document.getElementById('nav-todays-date').textContent = formatNavDate();
+    
+    // Set greeting
+    const firstName = getFirstName(user.email);
+    const greeting = `${getGreeting()}, ${firstName}`;
+    document.getElementById('page-greeting').textContent = greeting;
     
     // Setup logout
     document.getElementById('logout-btn').addEventListener('click', logout);
@@ -91,10 +140,18 @@ async function loadTasks() {
     emptyState.classList.add('hidden');
     taskList.innerHTML = tasks.map(task => renderTaskCard(task)).join('');
     
-    // Update task count label
+    // Update task count label — includes today's date
     const label = document.getElementById('task-count-label');
     if (label) {
-      label.textContent = `${tasks.length} task${tasks.length !== 1 ? 's' : ''}`;
+      const today = new Date();
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const dateStr = `${months[today.getMonth()]} ${today.getDate()}`;
+      const notDoneCount = tasks.filter(t => t.status !== 'done').length;
+      if (notDoneCount === 0) {
+        label.textContent = `All done · ${dateStr}`;
+      } else {
+        label.textContent = `${notDoneCount} pending · ${tasks.length} total · ${dateStr}`;
+      }
     }
     
     // Setup tick handlers
@@ -121,37 +178,64 @@ async function loadTasks() {
   }
 }
 
-// Render task card HTML
+// Render task card HTML — horizontal layout:
+// [TICK] | [PRIORITY DOT] [TITLE + DESCRIPTION] | [PROJECT LOGO] | [ACTIONS]
 function renderTaskCard(task) {
   const project = projects.find(p => p.id === task.project_id);
-  const dueDateClass = isOverdue(task.due_date) ? 'overdue' : (isToday(task.due_date) ? 'today' : '');
-  const repeatBadge = getRepeatBadge(task);
   const isDone = task.status === 'done';
-  
+  const doneClass = isDone ? ' done' : '';
+
+  // Build meta line — items separated by middot
+  const metaParts = [];
+  if (task.status) {
+    metaParts.push(`<span class="task-meta-item"><span class="meta-label">Status:</span> <span class="meta-value${isDone ? ' meta-value-done' : ''}">${escapeHtml(task.status)}</span></span>`);
+  }
+  if (task.due_date) {
+    const d = new Date(task.due_date + 'T00:00:00');
+    const today = new Date(); today.setHours(0,0,0,0);
+    const diff = Math.round((d - today) / 86400000);
+    const dueClass = diff === 0 ? 'due-today' : (diff < 0 ? 'due-overdue' : '');
+    metaParts.push(`<span class="task-meta-item"><span class="meta-label">Due:</span> <span class="${dueClass}">${formatDueDate(task.due_date)}</span></span>`);
+  }
+  // Effort
+  const effortLabel = (task.priority || 'medium').charAt(0).toUpperCase() + (task.priority || 'medium').slice(1);
+  metaParts.push(`<span class="priority-text ${task.priority || 'medium'}">Effort: ${effortLabel}</span>`);
+  // Repeat badge
+  const repeatBadge = getRepeatBadge(task);
+  if (repeatBadge) metaParts.push(repeatBadge);
+
+  const metaLine = metaParts.length > 0
+    ? `<div class="task-meta-line">${metaParts.join('<span class="task-meta-item"><span class="meta-sep">·</span></span>')}</div>`
+    : '';
+
+  // Priority dot
+  const priorityDot = `<span class="task-priority-dot ${task.priority || 'medium'}"></span>`;
+
+  // Project logo
+  const projectLogoHtml = (project && project.image_url)
+    ? `<img src="${escapeHtml(project.image_url)}" class="task-project-logo" alt="${escapeHtml(project.name)}" title="${escapeHtml(project.name)}">`
+    : '';
+
   return `
-    <div class="task-row">
-      <div class="task-card priority-${task.priority}${isDone ? ' done' : ''}">
+    <div class="task-card priority-${task.priority || 'medium'}${doneClass}">
       <div class="task-tick-wrap">
         <input type="checkbox" class="task-tick" id="tick-${task.id}" data-id="${task.id}" ${isDone ? 'checked' : ''}>
       </div>
+      ${priorityDot}
       <div class="task-main">
-        <div class="task-title">${escapeHtml(task.title)}</div>
-        ${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ''}
-        <div class="task-meta">
-          ${task.status ? `<span class="badge badge-status task-status-badge" data-id="${task.id}" title="Click to edit status">Status: ${escapeHtml(task.status)}</span>` : `<span class="badge badge-status task-status-badge" data-id="${task.id}" title="Click to edit status">+ status</span>`}
-          ${task.due_date ? `<span class="task-due ${dueDateClass}">Due: ${formatDate(task.due_date)}</span>` : ''}
-          <span class="badge badge-priority-${task.priority}">Effort: ${task.priority}</span>
-          ${repeatBadge}
+        <div class="task-title-row">
+          <span class="task-title">${escapeHtml(task.title)}</span>
         </div>
+        ${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ''}
+        ${metaLine}
         ${renderTaskLinks(task.links) ? `<div class="task-links-row">${renderTaskLinks(task.links)}</div>` : ''}
       </div>
+      ${projectLogoHtml}
       <div class="task-actions">
         <button class="task-edit-btn" data-id="${task.id}" title="Edit">✏️</button>
         <button class="task-delete-btn" data-id="${task.id}" title="Delete">🗑️</button>
       </div>
     </div>
-    ${project && project.image_url ? `<img src="${escapeHtml(project.image_url)}" class="task-project-logo" alt="${escapeHtml(project.name)}" title="${escapeHtml(project.name)}">` : ''}
-  </div>
   `;
 }
 
