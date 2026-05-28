@@ -138,9 +138,9 @@ function renderTaskCard(task) {
         <div class="task-title">${escapeHtml(task.title)}</div>
         ${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ''}
         <div class="task-meta">
-          <span class="badge badge-status task-status-badge" data-id="${task.id}" title="Click to edit status">${task.status ? escapeHtml(task.status) : '+ status'}</span>
-          ${task.due_date ? `<span class="task-due ${dueDateClass}">${formatDate(task.due_date)}</span>` : ''}
-          <span class="badge badge-priority-${task.priority}">${task.priority}</span>
+          ${task.status ? `<span class="badge badge-status task-status-badge" data-id="${task.id}" title="Click to edit status">Status: ${escapeHtml(task.status)}</span>` : `<span class="badge badge-status task-status-badge" data-id="${task.id}" title="Click to edit status">+ status</span>`}
+          ${task.due_date ? `<span class="task-due ${dueDateClass}">Due: ${formatDate(task.due_date)}</span>` : ''}
+          <span class="badge badge-priority-${task.priority}">Effort: ${task.priority}</span>
           ${repeatBadge}
         </div>
         ${renderTaskLinks(task.links) ? `<div class="task-links-row">${renderTaskLinks(task.links)}</div>` : ''}
