@@ -639,7 +639,6 @@ h3 { font-size: 1.1rem; }
   object-fit: contain;
   border-radius: var(--radius-md);
   flex-shrink: 0;
-  border: 1px solid var(--border);
   align-self: center;
 }
 
@@ -996,5 +995,4 @@ h3 { font-size: 1.1rem; }
   max-height: 60px;
   border-radius: 8px;
   object-fit: contain;
-  border: 1px solid var(--border);
 }
