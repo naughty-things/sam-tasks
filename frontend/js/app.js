@@ -75,6 +75,11 @@ async function loadTasks() {
     // Apply hide-done filter client-side
     if (hideDone) {
       tasks = tasks.filter(t => t.status !== 'done');
+    } else {
+      // When not hiding done, sort so done tasks float to the bottom
+      const notDone = tasks.filter(t => t.status !== 'done');
+      const done = tasks.filter(t => t.status === 'done');
+      tasks = [...notDone, ...done];
     }
     
     if (tasks.length === 0) {
