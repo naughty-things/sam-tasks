@@ -491,9 +491,14 @@ async function checkRepeatingTaskCycles(tasks) {
   for (const task of tasks) {
     if (task.repeat_type && task.repeat_type !== 'none' &&
         task.status === 'done' && task.next_due_date) {
+      const dueDate = new Date(task.due_date);
+      dueDate.setHours(0, 0, 0, 0);
       const nextDate = new Date(task.next_due_date);
       nextDate.setHours(0, 0, 0, 0);
-      if (today >= nextDate) {
+      // Only reset when today has passed the due_date of the current occurrence.
+      // This means the task was due on a past day and the user marked it done,
+      // and today is now the next occurrence day (or later).
+      if (today >= nextDate && today >= dueDate) {
         // New cycle has arrived — reset task
         const newDueDate = calculateNextDueDate(task.next_due_date, task.repeat_type, task.repeat_days);
         const newNextDueDate = calculateNextDueDate(newDueDate, task.repeat_type, task.repeat_days);
