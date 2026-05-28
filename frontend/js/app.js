@@ -458,6 +458,7 @@ async function toggleTaskDone(taskId) {
   try {
     const task = await getTask(taskId);
     const isCurrentlyDone = task.status === 'done';
+    console.log('[DEBUG toggleTaskDone]', task.title, 'isCurrentlyDone:', isCurrentlyDone, 'due_date:', task.due_date, 'next_due_date:', task.next_due_date, 'repeat_type:', task.repeat_type);
     
     if (!isCurrentlyDone && task.repeat_type && task.repeat_type !== 'none') {
       // Repeating task: mark done and store next cycle date
@@ -495,10 +496,15 @@ async function checkRepeatingTaskCycles(tasks) {
       dueDate.setHours(0, 0, 0, 0);
       const nextDate = new Date(task.next_due_date);
       nextDate.setHours(0, 0, 0, 0);
+      const dueDateValid = !isNaN(dueDate.getTime());
       // Only reset when today has passed the due_date of the current occurrence.
       // This means the task was due on a past day and the user marked it done,
       // and today is now the next occurrence day (or later).
-      if (today >= nextDate && today >= dueDate) {
+      const shouldReset = dueDateValid
+        ? (today >= nextDate && today >= dueDate)
+        : (today >= nextDate);
+      console.log('[DEBUG checkRepeatingTaskCycles]', task.title, 'due_date:', task.due_date, 'next_due_date:', task.next_due_date, 'dueDateValid:', dueDateValid, 'today>=nextDate:', today >= nextDate, 'today>=dueDate:', today >= dueDate, 'shouldReset:', shouldReset);
+      if (shouldReset) {
         // New cycle has arrived — reset task
         const newDueDate = calculateNextDueDate(task.next_due_date, task.repeat_type, task.repeat_days);
         const newNextDueDate = calculateNextDueDate(newDueDate, task.repeat_type, task.repeat_days);
