@@ -586,11 +586,12 @@ async function checkRepeatingTaskCycles(tasks) {
       nextDate.setHours(0, 0, 0, 0);
       const dueDateValid = !isNaN(dueDate.getTime());
       const nextDateValid = !isNaN(nextDate.getTime()) && nextDate > dueDate;
-      // Only reset when today has reached/passed the next_due_date AND next_due_date
-      // is actually after due_date (data sanity check — if they're equal, next_due_date
-      // was never properly set and we should NOT auto-reset).
+      // Only reset when today has reached/passed the next_due_date.
+      // For repeating tasks, due_date marks the start of the current cycle and may be
+      // in the past (e.g. task completed late) — that should not block reset.
+      // The nextDate > dueDate check ensures next_due_date was properly set.
       const shouldReset = dueDateValid && nextDateValid
-        ? (today >= nextDate && today >= dueDate)
+        ? (today >= nextDate)
         : false;
       if (shouldReset) {
         // New cycle has arrived — reset task

@@ -70,7 +70,8 @@ CREATE TABLE IF NOT EXISTS public.tasks (
   -- Repeat fields
   repeat_type TEXT DEFAULT 'none' CHECK (repeat_type IN ('none', 'daily', 'weekdays', 'weekly', 'monthly')),
   repeat_days INTEGER[], -- for weekly: 0-6 (Sun-Sat), for monthly: 1-31
-  
+  next_due_date DATE, -- the date the repeating task is next due after current cycle completes
+
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
