@@ -547,8 +547,6 @@ h3 { font-size: 1.1rem; }
 
 .task-card.done .task-title {
   color: var(--text-light);
-  text-decoration: line-through;
-  text-decoration-color: var(--text-light);
 }
 
 .task-description {
