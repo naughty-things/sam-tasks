@@ -887,7 +887,21 @@ h3 { font-size: 1.1rem; }
 /* ============================================
    Repeat Checkbox Styles
    ============================================ */
-.repeat-day { width: auto; margin-right: 4px; }
+.repeat-day {
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+  padding: 0;
+  border: 1.5px solid var(--border);
+  border-radius: 3px;
+  /* Restore native checkbox appearance — .form-group input sets
+     -webkit-appearance: none which strips the checkmark, making
+     checked state invisible. */
+  -webkit-appearance: auto;
+  appearance: auto;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
 #repeat-days-checkboxes label {
   display: flex;
   align-items: center;
