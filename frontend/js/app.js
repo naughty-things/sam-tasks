@@ -549,9 +549,18 @@ async function toggleTaskDone(taskId) {
       // schedule is self-contained. Use today as the base for computing next occurrence.
       // For other repeat types, keep using due_date if set (to preserve user's intent).
       const isWeekdayLike = task.repeat_type === 'weekdays';
+      // Use local date string (en-CA format = YYYY-MM-DD in local timezone) instead of
+      // toISOString() which converts to UTC and can be off by a day in GMT+8
+      const toLocalDateString = (d) => {
+        const dd = d || new Date();
+        const year = dd.getFullYear();
+        const month = String(dd.getMonth() + 1).padStart(2, '0');
+        const day = String(dd.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
       const baseDate = isWeekdayLike
-        ? new Date().toISOString().split('T')[0]
-        : (task.due_date || new Date().toISOString().split('T')[0]);
+        ? toLocalDateString()
+        : (task.due_date || toLocalDateString());
       const nextDueDate = calculateNextDueDate(baseDate, task.repeat_type, task.repeat_days);
       await updateTask(taskId, {
         status: 'done',
@@ -583,7 +592,9 @@ async function checkRepeatingTaskCycles(tasks) {
   for (const task of tasks) {
     if (task.repeat_type && task.repeat_type !== 'none' &&
         task.status === 'done' && task.next_due_date) {
-      const nextDate = new Date(task.next_due_date);
+      // Parse next_due_date in local timezone (not UTC)
+      const [ny, nm, nd] = task.next_due_date.split('-').map(Number);
+      const nextDate = new Date(ny, nm - 1, nd);
       nextDate.setHours(0, 0, 0, 0);
       const nextDateValid = !isNaN(nextDate.getTime());
       // Reset when today >= next_due_date.
@@ -623,7 +634,14 @@ async function deleteTaskConfirm(taskId) {
 
 // Calculate next due date based on repeat type
 function calculateNextDueDate(currentDueDate, repeatType, repeatDays) {
-  const date = currentDueDate ? new Date(currentDueDate) : new Date();
+  // Parse date string in local timezone (not UTC)
+  let date;
+  if (currentDueDate) {
+    const [year, month, day] = currentDueDate.split('-').map(Number);
+    date = new Date(year, month - 1, day);
+  } else {
+    date = new Date();
+  }
   date.setHours(0, 0, 0, 0);
   
   switch (repeatType) {
@@ -660,7 +678,11 @@ function calculateNextDueDate(currentDueDate, repeatType, repeatDays) {
       break;
   }
   
-  return date.toISOString().split('T')[0];
+  // Return local date string (YYYY-MM-DD)
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 // ============================================
