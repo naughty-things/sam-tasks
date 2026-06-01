@@ -197,6 +197,11 @@ function renderTaskCard(task) {
     const dueClass = diff === 0 ? 'due-today' : (diff < 0 ? 'due-overdue' : '');
     metaParts.push(`<span class="task-meta-item"><span class="meta-label">Due:</span> <span class="${dueClass}">${formatDueDate(task.due_date)}</span></span>`);
   }
+  // Show "Next: ..." for done repeating tasks so the user knows when the
+  // current cycle will reset.
+  if (isDone && task.repeat_type && task.repeat_type !== 'none' && task.next_due_date) {
+    metaParts.push(`<span class="task-meta-item"><span class="meta-label">Next:</span> <span class="meta-value-done">${formatDueDate(task.next_due_date)}</span></span>`);
+  }
   // Effort
   const effortLabel = (task.priority || 'medium').charAt(0).toUpperCase() + (task.priority || 'medium').slice(1);
   metaParts.push(`<span class="priority-text ${task.priority || 'medium'}">Effort: ${effortLabel}</span>`);
