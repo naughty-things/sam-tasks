@@ -887,7 +887,8 @@ h3 { font-size: 1.1rem; }
 /* ============================================
    Repeat Checkbox Styles
    ============================================ */
-.repeat-day {
+/* Selector needs higher specificity than .form-group input (0,1,1) to win. */
+.form-group input.repeat-day {
   width: 16px;
   height: 16px;
   margin-right: 4px;
@@ -895,7 +896,7 @@ h3 { font-size: 1.1rem; }
   border: 1.5px solid var(--border);
   border-radius: 3px;
   /* Restore native checkbox appearance — .form-group input sets
-     -webkit-appearance: none which strips the checkmark, making
+     appearance: none which strips the checkmark, making the
      checked state invisible. */
   -webkit-appearance: auto;
   appearance: auto;
