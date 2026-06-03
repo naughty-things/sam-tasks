@@ -608,12 +608,12 @@ async function checkRepeatingTaskCycles(tasks) {
       const shouldReset = nextDateValid && (today >= nextDate);
       if (shouldReset) {
         // New cycle has arrived — reset task.
-        // Use next_due_date as base (not due_date, which may be null for weekday tasks).
-        const newDueDate = calculateNextDueDate(task.next_due_date, task.repeat_type, task.repeat_days);
-        const newNextDueDate = calculateNextDueDate(newDueDate, task.repeat_type, task.repeat_days);
+        // due_date = today (the day the new cycle starts), so the task is due NOW,
+        // not tomorrow. next_due_date advances to the next cycle in the future.
+        const newNextDueDate = calculateNextDueDate(task.next_due_date, task.repeat_type, task.repeat_days);
         updates.push(updateTask(task.id, {
           status: 'not_started',
-          due_date: newDueDate,
+          due_date: toLocalDateString(),
           next_due_date: newNextDueDate
         }));
       }
