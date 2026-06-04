@@ -542,6 +542,16 @@ async function saveTask() {
   }
 }
 
+// Use local date string (YYYY-MM-DD in local timezone) instead of
+// toISOString() which converts to UTC and can be off by a day in GMT+8
+function toLocalDateString(d) {
+  const dd = d || new Date();
+  const year = dd.getFullYear();
+  const month = String(dd.getMonth() + 1).padStart(2, '0');
+  const day = String(dd.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 // Toggle task done/undone via tick checkbox
 async function toggleTaskDone(taskId) {
   try {
@@ -554,15 +564,6 @@ async function toggleTaskDone(taskId) {
       // schedule is self-contained. Use today as the base for computing next occurrence.
       // For other repeat types, keep using due_date if set (to preserve user's intent).
       const isWeekdayLike = task.repeat_type === 'weekdays';
-      // Use local date string (en-CA format = YYYY-MM-DD in local timezone) instead of
-      // toISOString() which converts to UTC and can be off by a day in GMT+8
-      const toLocalDateString = (d) => {
-        const dd = d || new Date();
-        const year = dd.getFullYear();
-        const month = String(dd.getMonth() + 1).padStart(2, '0');
-        const day = String(dd.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-      };
       const baseDate = isWeekdayLike
         ? toLocalDateString()
         : (task.due_date || toLocalDateString());
